@@ -1,0 +1,96 @@
+1.27.jugaar.ai {
+	encode gzip
+
+	route /api/* {
+		reverse_proxy localhost:8080
+	}
+
+	route {
+		root * /home/notebooklm-portal/notebooklm-portal/frontend/dist
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+TTS.27.jugaar.ai {
+	encode gzip
+	reverse_proxy localhost:4567
+}
+
+complain-panel.27.jugaar.ai {
+	encode gzip
+	reverse_proxy localhost:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-For {remote_host}
+	}
+}
+
+controlflow.27.jugaar.ai {
+	encode gzip
+	reverse_proxy localhost:3001 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-For {remote_host}
+	}
+}
+
+http://complain_panel.27.jugaar.ai {
+	redir https://complain-panel.27.jugaar.ai{uri} 301
+}
+
+techportal.27.jugaar.ai {
+	encode gzip
+	root * /var/www/techportal
+	try_files {path} /index.php{query}
+
+	php_fastcgi unix//var/run/php/php8.2-fpm.sock {
+		root /var/www/techportal
+	}
+
+	file_server
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	@blocked {
+		path /wp-config.php
+		path /xmlrpc.php
+		path /.htaccess
+		path /readme.html
+		path /license.txt
+	}
+	respond @blocked 403
+}
+
+staging.27.jugaar.ai {
+	encode gzip
+	root * /var/www/techportal-staging
+	try_files {path} /index.php{query}
+
+	php_fastcgi unix//var/run/php/php8.2-fpm.sock {
+		root /var/www/techportal-staging
+	}
+
+	file_server
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	@blocked {
+		path /wp-config.php
+		path /xmlrpc.php
+		path /.htaccess
+		path /readme.html
+		path /license.txt
+	}
+	respond @blocked 403
+}
